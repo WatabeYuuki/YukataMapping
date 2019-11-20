@@ -1,4 +1,8 @@
+//import gab.opencv.*;
 import codeanticode.syphon.*;
+import SimpleOpenNI.*;
+
+SimpleOpenNI  context;
 
 BackGround backGround;
 Drawing drawing;
@@ -13,22 +17,30 @@ Anime anime;
 final int DRAW_MODE = 0;
 final int ANIME_MODE = 1;
 final boolean MOVE_PEN_MODE = false;
+boolean BACKGROUND_MODE = false;
 
 PreviewButton previewButton;
 
 int drawingMode;
 
 PImage[] stampImages;
-
 PImage[] penImages;
+PImage[] backgroundImages;
 
 SyphonServer server;
+//OpenCV opencv;
 
 void setup()
 {
-  size (600, 600, P2D);
+  size (640, 480, P2D);
 
   server = new SyphonServer(this, "Processing Syphon");
+
+  context = new SimpleOpenNI(this);
+  context.enableDepth();
+  context.enableUser();
+
+  //opencv = new OpenCV(this, context.userWidth(), context.userHeight());
 
   backGround = new BackGround(colors);
 
@@ -66,6 +78,13 @@ void setup()
     stampImages[i] = loadImage(stampImagePaths[i]);
   }
 
+  backgroundImages = new PImage[backgroundImagePaths.length];
+  for (i = 0; i < backgroundImagePaths.length; i++)
+  {
+    backgroundImages[i] = loadImage(backgroundImagePaths[i]);
+    backgroundImages[i].resize(width, height);
+  }
+
   //cartoonPen = new ArrayList<Integer>();
   //cartoonStrokeWeight = new ArrayList<Integer>();
   penImages = new PImage[penImagePaths.length];
@@ -82,10 +101,13 @@ void setup()
 
   penButton.active();
   moveStampButton.inactive();
+  smooth();
 }
 
 void draw()
 {
+  context.update();
+
   backGround.display();
   drawing.display();
   anime.display();
@@ -102,12 +124,32 @@ void draw()
   server.sendImage(cerateMergedImage());
 }
 
-PGraphics cerateMergedImage() {
+PImage cerateMergedImage() {
   PGraphics pg = createGraphics(drawing.canvas.width, drawing.canvas.height);
+
+  PImage depthImage = context.depthImage().copy();
+  float ratio = depthImage.height / pg.height;
+  float w = depthImage.width * ratio;
+  float h = pg.height;
+  depthImage.loadPixels();
+  depthImage.resize((int)w, (int)h);
+  depthImage.updatePixels();
+  //float thc = map(mouseX, 0, width, 0, 10);
+  //thc = thc / 10;
+  //depthImage.filter(THRESHOLD, thc);
+  //println(thc);
+  depthImage.filter(THRESHOLD, 0.8);
+
+
   pg.beginDraw();
   pg.image(backGround.canvas, 0, 0);
   pg.image(drawing.canvas, 0, 0);
+  pg.image(anime.canvas, 0, 0);
+  
+  pg.scale(1, -1);
+  pg.mask(depthImage);
   pg.endDraw();
+
   return pg;
 }
 
@@ -118,7 +160,7 @@ void mouseDragged()
     pmouseX = pmouseX == 0 ? mouseX: pmouseX;
     pmouseY = pmouseY == 0 ? mouseY: pmouseY;
     drawing.drawing(mouseX, mouseY, pmouseX, pmouseY);
-  } 
+  }
   if (drawingMode == ANIME_MODE && !moveStampButton.isInner(mouseX, mouseY) 
     && !penButton.isInner(mouseX, mouseY) && !plusButton.isInner(mouseX, mouseY) 
     && !minusButton.isInner(mouseX, mouseY) && !previewButton.isInner(mouseX, mouseY)) 
@@ -186,5 +228,10 @@ void keyPressed()
   {
     anime.prevImage();
     moveStampButton.prevImage();
+  }
+  if (key == 'b')
+  {
+    if (BACKGROUND_MODE) BACKGROUND_MODE = false;
+    else BACKGROUND_MODE = true;
   }
 }

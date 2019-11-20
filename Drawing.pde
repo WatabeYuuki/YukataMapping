@@ -28,7 +28,7 @@ class Drawing
 
   Drawing()
   {
-    canvas = createGraphics(600, 600);
+    canvas = createGraphics(width, height);
     canvas.beginDraw();
     canvas.background(0, 0);
     canvas.endDraw();

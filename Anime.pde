@@ -1,5 +1,6 @@
 class Anime
 {
+  PGraphics canvas;
   int x, y, px, py, x_direction = 1;
   int imageNum, count;
   int MOVE_MODE = 0;
@@ -20,6 +21,10 @@ class Anime
     imageSize = 40;
     sizeMax = imageSize + sizeState * 4;
     sizeMin = imageSize;
+    canvas = createGraphics(width, height);
+    canvas.beginDraw();
+    canvas.background(0, 0);
+    canvas.endDraw();
   }
 
   void addArray(int _mx, int _my)
@@ -96,6 +101,13 @@ class Anime
     translate(x, y);
     scale(x_direction, 1);
     image(stampImages[imageNum], 0, 0, imageSize, imageSize);
+    canvas.beginDraw();
+    canvas.background(0, 0);
+    canvas.imageMode(CENTER);
+    canvas.translate(x, y);
+    canvas.scale(x_direction, 1);
+    canvas.image(stampImages[imageNum], 0, 0, imageSize, imageSize);
+    canvas.endDraw();
     popMatrix();
   }
 
