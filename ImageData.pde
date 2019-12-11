@@ -22,6 +22,8 @@ String[] penImagePaths = {
 };
 
 String[] backgroundImagePaths = {
-  "neko.jpg",
-  "line.png"
+  "uzbek01.jpg",
+  "uzbek02.jpg",
+  "uzbek03.jpg",
+  "uzbek04.jpg"
 };
